@@ -14,16 +14,8 @@ function autoHaki()
     end
 end
 
-function fastAttack()
-    local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
-    if tool then
-        rs.Remotes.Combat:FireServer(tool)
-    end
-end
-
 function getQuestForLevel(level)
     local quests = {
-        -- 1st Sea
         {min = 1, max = 9, npc = "Bandit", pos = CFrame.new(1060, 16, 1547)},
         {min = 10, max = 14, npc = "Monkey", pos = CFrame.new(-1122, 40, -525)},
         {min = 15, max = 29, npc = "Gorilla", pos = CFrame.new(-1495, 40, -320)},
@@ -45,8 +37,7 @@ function getQuestForLevel(level)
         {min = 400, max = 449, npc = "God's Guard", pos = CFrame.new(-4700, 800, -1912)},
         {min = 450, max = 474, npc = "Shanda", pos = CFrame.new(-4600, 850, -2150)},
         {min = 475, max = 524, npc = "Royal Squad", pos = CFrame.new(-5500, 840, -2225)},
-        {min = 525, max = 549, npc = "Royal Soldier", pos = CFrame.new(-5700, 870, -2500)},
-        -- 2nd & 3rd Sea podem ser adicionadas depois (se quiser, só pedir)
+        {min = 525, max = 549, npc = "Royal Soldier", pos = CFrame.new(-5700, 870, -2500)}
     }
     for _, q in pairs(quests) do
         if level >= q.min and level <= q.max then
@@ -65,14 +56,12 @@ function getNearestEnemy(name)
     return nil
 end
 
--- 🧠 Auto Haki
+-- Auto Haki
 spawn(function()
-    while task.wait(1) do
-        pcall(autoHaki)
-    end
+    while task.wait(1) do pcall(autoHaki) end
 end)
 
--- ✈️ Auto Farm com Quest
+-- Auto Farm com Quest
 spawn(function()
     while task.wait(1) do
         local level = player.Data.Level.Value
@@ -81,17 +70,23 @@ spawn(function()
             rs.Remotes.CommF_:InvokeServer("StartQuest", quest.npc .. "Quest", 1)
             local enemy = getNearestEnemy(quest.npc)
             if enemy then
-                flyTo(enemy.HumanoidRootPart.Position)
                 repeat
-                    fastAttack()
-                    wait(0.1)
+                    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        local pos = enemy.HumanoidRootPart.Position + Vector3.new(0, 30, 0)
+                        player.Character.HumanoidRootPart.CFrame = CFrame.new(pos)
+                    end
+
+                    local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
+                    if tool then tool:Activate() end
+
+                    wait(0.15)
                 until not enemy or not enemy.Parent or enemy.Humanoid.Health <= 0
             end
         end
     end
 end)
 
--- 🌊 Auto troca de mar
+-- Trocar de mar automaticamente
 spawn(function()
     while task.wait(10) do
         local level = player.Data.Level.Value
@@ -103,7 +98,7 @@ spawn(function()
     end
 end)
 
--- 👊 Auto Click
+-- Auto click
 spawn(function()
     while task.wait(0.1) do
         pcall(function()
@@ -113,7 +108,7 @@ spawn(function()
     end
 end)
 
--- 📏 Hitbox Aumentada
+-- Hitbox aumentada
 spawn(function()
     while task.wait(1) do
         for _, mob in pairs(ws.Enemies:GetChildren()) do
