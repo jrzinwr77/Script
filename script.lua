@@ -104,7 +104,7 @@ RunService.RenderStepped:Connect(function()
             gunESP = Drawing.new("Circle")
             gunESP.Radius = 6
             gunESP.Filled = true
-            gunESP.Color = Color3.fromRGB(255, 255, 0) -- Amarelo
+            gunESP.Color = Color3.fromRGB(255, 255, 0)
             gunESP.Transparency = 1
             gunESP.Visible = true
         end
@@ -118,5 +118,51 @@ RunService.RenderStepped:Connect(function()
         end
     elseif gunESP then
         gunESP.Visible = false
+    end
+end)
+
+-- BOTÃO DE PEGAR ARMA (MOBILE)
+local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+ScreenGui.ResetOnSpawn = false
+
+local grabButton = Instance.new("TextButton", ScreenGui)
+grabButton.Size = UDim2.new(0, 130, 0, 40)
+grabButton.Position = UDim2.new(0.5, -65, 1, -100)
+grabButton.BackgroundColor3 = Color3.fromRGB(255, 213, 0)
+grabButton.Text = "🔫 Pegar Arma"
+grabButton.TextColor3 = Color3.new(0, 0, 0)
+grabButton.TextSize = 18
+grabButton.Visible = false
+grabButton.BorderSizePixel = 0
+grabButton.BackgroundTransparency = 0.1
+
+-- Atualiza visibilidade do botão
+local function updateButton()
+    local gun = workspace:FindFirstChild("GunDrop")
+    grabButton.Visible = gun ~= nil
+end
+
+-- Loop para atualizar visibilidade
+task.spawn(function()
+    while true do
+        updateButton()
+        task.wait(0.5)
+    end
+end)
+
+-- Clique do botão: TP para arma e volta
+grabButton.MouseButton1Click:Connect(function()
+    local gun = workspace:FindFirstChild("GunDrop")
+    local char = Players.LocalPlayer.Character
+    if gun and char and char:FindFirstChild("HumanoidRootPart") then
+        local root = char.HumanoidRootPart
+        local originalCFrame = root.CFrame
+
+        -- TP para arma
+        root.CFrame = gun.CFrame + Vector3.new(0, 2, 0)
+        task.wait(0.5)
+
+        -- Volta para onde estava
+        root.CFrame = originalCFrame
     end
 end)
