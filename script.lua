@@ -1,68 +1,71 @@
 --[[ SETTINGS ]]--
-local distanceToShoot = 25 -- distância para dar auto shot
+local distanceToShoot = 25 -- Distância máxima para auto shoot
 
---[[ ESP + Auto Shot Script ]]--
+--[[ SERVICES ]]--
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
 -- Tabela de ESPs
-local espTable = {}
+local boxes = {}
 
--- Função para criar ESP
-function createESP(player, roleColor)
-    local esp = Drawing.new("Text")
-    esp.Visible = true
-    esp.Center = true
-    esp.Outline = true
-    esp.Font = 2
-    esp.Size = 16
-    esp.Color = roleColor
-    espTable[player] = esp
+-- Função para criar caixa
+function createBox(player, color)
+    local box = Drawing.new("Square")
+    box.Thickness = 2
+    box.Transparency = 1
+    box.Color = color
+    box.Filled = false
+    box.Visible = true
+    boxes[player] = box
 end
 
--- Atualiza ESPs
+-- Função para detectar a função do jogador e definir a cor da caixa
+function getPlayerRoleColor(player)
+    if player.Character then
+        local char = player.Character
+        if char:FindFirstChild("Knife") then
+            return Color3.fromRGB(255, 0, 0) -- Assassino (vermelho)
+        elseif char:FindFirstChild("Gun") or (player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild("Gun")) then
+            return Color3.fromRGB(0, 0, 255) -- Xerife (azul)
+        end
+    end
+    return Color3.fromRGB(0, 255, 0) -- Inocente (verde)
+end
+
+-- Atualiza as caixas constantemente
 RunService.RenderStepped:Connect(function()
-    for i, player in pairs(Players:GetPlayers()) do
+    for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local hrp = player.Character.HumanoidRootPart
-            local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(hrp.Position)
-            local esp = espTable[player]
-
-            if not esp then
-                -- Detecta função do jogador
-                local role = player:GetRoleInGroup(0) -- Placeholder; MM2 detecta via armas
-                local color = Color3.fromRGB(0, 255, 0) -- Inocente padrão
-
-                if player:FindFirstChild("Backpack") then
-                    if player.Backpack:FindFirstChild("Gun") or player.Character:FindFirstChild("Gun") then
-                        color = Color3.fromRGB(0, 0, 255) -- Azul: Xerife
-                    end
-                end
-
-                if player.Character:FindFirstChild("Knife") then
-                    color = Color3.fromRGB(255, 0, 0) -- Vermelho: Murderer
-                end
-
-                createESP(player, color)
-                esp = espTable[player]
-                esp.Color = color
+            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            local pos, onscreen = Camera:WorldToViewportPoint(hrp.Position)
+            
+            if not boxes[player] then
+                createBox(player, getPlayerRoleColor(player))
             end
 
-            if onScreen then
-                esp.Position = Vector2.new(pos.X, pos.Y)
-                esp.Text = player.Name
-                esp.Visible = true
+            local box = boxes[player]
+            local size = 3.5  -- Ajuste conforme necessário
+            local scaleFactor = 1000 / (Camera.CFrame.Position - hrp.Position).Magnitude
+            local width = scaleFactor * size
+            local height = scaleFactor * size * 1.8
+
+            if onscreen then
+                box.Size = Vector2.new(width, height)
+                box.Position = Vector2.new(pos.X - width / 2, pos.Y - height / 2)
+                box.Color = getPlayerRoleColor(player)
+                box.Visible = true
             else
-                esp.Visible = false
+                box.Visible = false
             end
-        elseif espTable[player] then
-            espTable[player].Visible = false
+        elseif boxes[player] then
+            boxes[player].Visible = false
         end
     end
 end)
 
--- Auto Shoot se você for o xerife
+-- Auto Shoot se você for o Xerife
 RunService.RenderStepped:Connect(function()
     local char = LocalPlayer.Character
     if not char or not char:FindFirstChild("Gun") then return end
@@ -74,9 +77,9 @@ RunService.RenderStepped:Connect(function()
             if murdererHRP and localHRP then
                 local distance = (murdererHRP.Position - localHRP.Position).Magnitude
                 if distance <= distanceToShoot then
-                    -- Mira e atira
-                    workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, murdererHRP.Position)
-                    mouse1click() -- Clique do mouse
+                    -- Mira no Murderer e atira
+                    Camera.CFrame = CFrame.new(Camera.CFrame.Position, murdererHRP.Position)
+                    mouse1click()
                     wait(0.5)
                 end
             end
