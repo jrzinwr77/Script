@@ -1,5 +1,3 @@
--- ✅ SCRIPT FINAL KAITUN PRO - FARM + BOSS + FULL AREAS (ATUALIZADO)
-
 getgenv().KaitunPro = { Weapon = "Melee", FastAttack = true, ExpandHitbox = true, FlyAbove = true, Delay = 0.12 }
 
 local plr = game.Players.LocalPlayer local rs = game:GetService("ReplicatedStorage") local ts = game:GetService("TweenService")
